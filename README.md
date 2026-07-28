@@ -69,6 +69,9 @@ Daili 是轻量级命令行代理管理工具。
 
 ## 📥 代理来源
 
+###### **[返回上级](#)**
+
+
 ### 1. 本地文本文件
 
 bash
@@ -118,6 +121,9 @@ cat proxy.txt | python daili.py -f -
 
 ## 🔀 代理选择策略
 
+###### **[返回上级](#)**
+
+
 ### 随机模式 `random`
 
 bash
@@ -141,6 +147,9 @@ python daili.py -f proxy.txt -m seq
 ---
 
 ## 🌐 支持代理格式
+
+###### **[返回上级](#)**
+
 
 工具自动标准化各类简写格式（通过
 
@@ -171,6 +180,9 @@ python daili.py -f proxy.txt -m seq
 
 ## 🔍 协议过滤
 
+###### **[返回上级](#)**
+
+
 参数：
 
 `--filter`
@@ -189,6 +201,9 @@ python daili.py -f proxy.txt -m random --filter socks-only
 ---
 
 ## 🔄 自动轮换刷新
+
+###### **[返回上级](#)**
+
 
 参数：
 
@@ -217,6 +232,9 @@ python daili.py \
 
 ## 🌍 读取系统已有代理
 
+###### **[返回上级](#)**
+
+
 参数：
 
 `--use-env-proxy`
@@ -236,6 +254,9 @@ python daili.py -f proxy.txt --use-env-proxy
 ---
 
 ## 🖥️ 本地中转代理服务
+
+###### **[返回上级](#)**
+
 
 参数：
 
@@ -281,6 +302,9 @@ python daili.py -f proxy.txt --local-proxy --local-ip 0.0.0.0 --local-port 9999
 
 ## 🔐 本地代理鉴权
 
+###### **[返回上级](#)**
+
+
 为本地中转代理增加账号密码保护
 
 bash
@@ -304,6 +328,9 @@ admin:123456@127.0.0.1:8899
 ---
 
 ## 📤 导出终端环境变量
+
+###### **[返回上级](#)**
+
 
 参数：
 
@@ -363,6 +390,9 @@ eval $(python3 daili.py -f proxy.txt -m random --export-env)
 
 ## 📌 使用示例
 
+###### **[返回上级](#)**
+
+
 ### 1. 单次随机选取代理
 
 bash
@@ -407,6 +437,9 @@ python daili.py -f proxy.txt --proxy-user user --proxy-pass password
 
 ## ⚙️ 完整参数说明
 
+###### **[返回上级](#)**
+
+
 表格
 
 | 参数 | 说明 |
@@ -429,6 +462,9 @@ python daili.py -f proxy.txt --proxy-user user --proxy-pass password
 ---
 
 ## 💡 项目定位
+
+###### **[返回上级](#)**
+
 
 Daili 面向开发人员用于：
 
