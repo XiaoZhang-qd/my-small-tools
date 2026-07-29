@@ -11,33 +11,26 @@ import requests
 import base64
 import subprocess
 
-# 永久兼容本地文件 / python3 - / python3 -c 三种运行模式
 try:
     SCRIPT_NAME = os.path.basename(__file__)
 except NameError:
     SCRIPT_NAME = "daili.py"
 
-# 全局存储当前选中的代理
 current_proxy = {"type": None, "url": None}
-# 全局本地代理鉴权
 local_auth = {"user": None, "pass": None}
 
-# 简易本地代理转发处理器（增加Basic Auth校验）
 class ProxyHandler(BaseHTTPRequestHandler):
     def check_auth(self):
-        # 未配置本地账号密码，直接放行
         if not local_auth["user"] or not local_auth["pass"]:
             return True
         auth_header = self.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Basic "):
             return False
-        # 解析base64账号密码
         auth_data = base64.b64decode(auth_header.replace("Basic ", "").strip()).decode("utf-8")
         req_user, req_pass = auth_data.split(":", 1)
         return req_user == local_auth["user"] and req_pass == local_auth["pass"]
 
     def do_all(self):
-        # 鉴权校验失败
         if not self.check_auth():
             self.send_response(401)
             self.send_header("WWW-Authenticate", 'Basic realm="Local Proxy Auth"')
@@ -78,7 +71,6 @@ class ProxyHandler(BaseHTTPRequestHandler):
 def start_local_proxy(listen_ip, listen_port):
     """启动本地中转代理服务"""
     server = HTTPServer((listen_ip, listen_port), ProxyHandler)
-    # 打印带鉴权的本地代理地址
     if local_auth["user"] and local_auth["pass"]:
         addr_str = f"{local_auth['user']}:{local_auth['pass']}@{listen_ip}:{listen_port}"
     else:
@@ -153,14 +145,11 @@ def main():
     parser.add_argument("--loop", type=int, default=0, help="loop refresh interval(second), 0 = once")
     parser.add_argument("--export-env", action="store_true", help="output shell env format for eval")
     parser.add_argument("--use-env-proxy", action="store_true", help="read system HTTP_PROXY/ALL_PROXY into proxy pool")
-    # 上游代理全局账号密码
     parser.add_argument("--proxy-user", type=str, help="global upstream proxy auth username")
     parser.add_argument("--proxy-pass", type=str, help="global upstream proxy auth password")
-    # 本地中转代理配置
     parser.add_argument("--local-proxy", action="store_true", help="start local global proxy server")
     parser.add_argument("--local-ip", default="127.0.0.1", help="local proxy listen ip, default 127.0.0.1")
     parser.add_argument("--local-port", type=int, default=8899, help="local proxy listen port, default 8899")
-    # 新增：本地代理鉴权账号密码
     parser.add_argument("--local-user", type=str, help="local proxy auth username")
     parser.add_argument("--local-pass", type=str, help="local proxy auth password")
 
@@ -169,7 +158,6 @@ def main():
         sys.exit(1)
     args = parser.parse_args()
 
-    # 全局保存本地代理鉴权信息
     local_auth["user"] = args.local_user
     local_auth["pass"] = args.local_pass
 
@@ -269,7 +257,6 @@ def main():
             print(f"TYPE={ptype}")
             print(f"PROXY_URL={url}")
 
-    # 启动本地代理线程
     local_proxy_thread = None
     if args.local_proxy:
         local_proxy_thread = threading.Thread(
@@ -280,7 +267,6 @@ def main():
         local_proxy_thread.start()
         print(f"[{SCRIPT_NAME}] [INFO] Local proxy service started")
 
-    # 主循环
     try:
         while True:
             ptype, url = pick_one()
