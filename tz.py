@@ -1,4 +1,3 @@
-# tz.py 跨平台修复版 Windows/Linux Ctrl+C一次退出
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import datetime
@@ -11,7 +10,6 @@ import threading
 import time
 import platform
 
-# 全局控制标记
 main_server = None
 admin_server = None
 main_sock = None
@@ -20,7 +18,6 @@ log_file_path = ""
 dd_mode = False
 stop_flag = threading.Event()
 
-# Windows Ctrl+C 控制台事件处理
 if platform.system() == "Windows":
     import ctypes
     from ctypes import wintypes
@@ -45,7 +42,6 @@ def get_next_seq(log_file: str) -> int:
 def is_ipv6(ip_addr: str) -> bool:
     return ":" in ip_addr
 
-# 主探针页面 302重定向
 class MainProbeHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, log_file, redirect_url, **kwargs):
         self.log_file = log_file
@@ -78,7 +74,6 @@ class MainProbeHandler(BaseHTTPRequestHandler):
         self.send_header("Location", self.redirect_url)
         self.end_headers()
 
-# 后台日志面板（带详情按钮）
 class AdminLogHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, log_file, secret_key, **kwargs):
         self.log_file = log_file
@@ -99,7 +94,6 @@ class AdminLogHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"<h1>403 Forbidden - Wrong Access Key</h1>")
             return
 
-        # 单条完整详情页
         if detail_seq:
             rows = []
             if os.path.exists(self.log_file):
@@ -136,7 +130,6 @@ class AdminLogHandler(BaseHTTPRequestHandler):
             self.wfile.write(html.encode("utf-8"))
             return
 
-        # 日志列表页面
         rows = []
         if os.path.exists(self.log_file):
             with open(self.log_file, "r", encoding="utf-8") as f:
@@ -191,14 +184,12 @@ def create_admin_server(bind, port, log, key):
         return AdminLogHandler(*args, log_file=log, secret_key=key, **kw)
     return HTTPServer((bind, port), handler)
 
-# 统一关闭流程
 def clean_shutdown():
     global main_server, admin_server, main_sock, admin_sock, log_file_path, dd_mode
     if stop_flag.is_set():
         return
     stop_flag.set()
     print("\n🛑 收到终止信号，正在关闭服务...")
-    # 强制关闭底层socket解除阻塞
     if main_sock:
         try:
             main_sock.close()
@@ -207,7 +198,6 @@ def clean_shutdown():
         try:
             admin_sock.close()
         except Exception: pass
-    # 标准关闭服务
     if main_server:
         try:
             main_server.shutdown()
@@ -216,7 +206,6 @@ def clean_shutdown():
         try:
             admin_server.shutdown()
         except Exception: pass
-    # 日志处理
     if dd_mode and os.path.exists(log_file_path):
         try:
             os.remove(log_file_path)
@@ -228,13 +217,11 @@ def clean_shutdown():
     print("✅ 程序完全退出")
     sys.exit(0)
 
-# Linux信号回调
 def sigint_handler(signum, frame):
     clean_shutdown()
 
 def main():
     global main_server, admin_server, main_sock, admin_sock, log_file_path, dd_mode
-    # 参数解析：大小写全部兼容
     parser = argparse.ArgumentParser(description="IP探针工具", add_help=False)
     parser.add_argument("-h", "-H", "--help", action="help", help="查看帮助")
     parser.add_argument("-b", "-B", "--bind", default="0.0.0.0", help="监听IP 0.0.0.0/127.0.0.1")
@@ -250,28 +237,22 @@ def main():
     log_file_path = args.log
     dd_mode = args.dd
 
-    # 生成密钥
     if args.pw:
         admin_key = args.pw
     else:
         admin_key = secrets.token_urlsafe(args.rand_key_len)
         print(f"⚠️ 自动生成后台密钥：{admin_key}")
 
-    # 创建服务
     main_server = create_main_server(args.bind, args.port, args.log, args.redirect)
     admin_server = create_admin_server(args.bind, args.admin_port, args.log, admin_key)
     main_sock = main_server.socket
     admin_sock = admin_server.socket
 
-    # 注册信号处理
-    # Linux/Unix 信号
     signal.signal(signal.SIGINT, sigint_handler)
     signal.signal(signal.SIGTERM, sigint_handler)
-    # Windows 控制台Ctrl+C回调
     if platform.system() == "Windows":
         kernel32.SetConsoleCtrlHandler(win_ctrl_callback, True)
 
-    # 服务线程（缩短poll_interval，快速响应关闭）
     def run_main():
         try:
             main_server.serve_forever(poll_interval=0.05)
@@ -293,7 +274,6 @@ def main():
         print("🗑️ 开启--dd，退出会删除日志")
     print("🛑 按下一次 Ctrl+C 即可关闭程序\n")
 
-    # 主线程循环捕获键盘中断兜底
     try:
         while not stop_flag.is_set():
             time.sleep(0.05)
