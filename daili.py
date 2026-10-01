@@ -107,10 +107,15 @@ def load_proxy_source(source: str) -> list:
         except Exception as e:
             print(f"[{SCRIPT_NAME}] WARNING: read file failed: {e}", file=sys.stderr)
             return []
-    raw = [ln for ln in raw_lines if ln.strip() != ""]
     processed = []
-    for line in raw:
-        processed.append(line.strip())
+    for ln in raw_lines:
+        # 去除行内注释 (# 和空格和-->后的内容)
+        for sep in ["#", " ", "-", ",", "-->"]:
+            if sep in ln:
+                ln = ln.split(sep, 1)[0]
+        ln = ln.strip()
+        if ln != "":
+            processed.append(ln)
     return processed
 
 def parse_proxy_line(line: str, scheme: str, global_user: str = None, global_pass: str = None) -> str:
